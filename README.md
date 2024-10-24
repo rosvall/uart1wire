@@ -45,7 +45,7 @@ USAGE:
 ```
 
 ## How do i hook it up?
-![Simple schematic](https://github.com/user-attachments/assets/1dd2ca68-75c6-438a-ba91-649aebd86248)
+![Schematic](https://github.com/user-attachments/assets/cdd006d3-66b1-4124-bb5e-5c24d50b9938)
 
 ## Notes
 ### Captured waveform for the curious
