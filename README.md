@@ -31,17 +31,18 @@ Reads `count` bytes from bus. Raises `SymbolError` if a device holds the bus low
 ```
 USAGE:
     ./uart1wire.py DEV CMD [CMD ...]
-    DEV                Path to uart device
+    DEV                 Path to uart device
     CMD is one of:
-    -v                 Toggle verbose mode (default off)
-    -b                 Toggle raw binary output from reads (default off)
-    -R                 Perform bus reset
-    -w HEX [HEX ...]   Write bytes to bus
-    -r COUNT           Read COUNT bytes from bus
-    -r FMT             Read from bus and parse as python struct format string FMT
+    -v                  Toggle verbose mode (default off)
+    -b                  Toggle raw binary output from reads (default off)
+    reset               Perform bus reset
+    write HEX [HEX ...] Write bytes to bus
+    read COUNT          Read COUNT bytes from bus
+    read FMT            Read from bus and parse as python struct format string FMT
+    -I                  Enter interactive console
 
     Example:
-    ./uart1wire.py /dev/ttyUSB0 -v -R -w 33 -r 8
+    ./uart1wire.py /dev/ttyUSB0 -v reset write 33 read 8
 ```
 
 ## How do i hook it up?

@@ -74,17 +74,18 @@ if __name__ == '__main__':
 
     USAGE = f"""USAGE:
     {sys.argv[0]} DEV CMD [CMD ...]
-    DEV                Path to uart device
+    DEV                 Path to uart device
     CMD is one of:
-    -v                 Toggle verbose mode (default off)
-    -b                 Toggle raw binary output from reads (default off)
-    -R                 Perform bus reset
-    -w HEX [HEX ...]   Write bytes to bus
-    -r COUNT           Read COUNT bytes from bus
-    -r FMT             Read from bus and parse as python struct format string FMT
+    -v                  Toggle verbose mode (default off)
+    -b                  Toggle raw binary output from reads (default off)
+    reset               Perform bus reset
+    write HEX [HEX ...] Write bytes to bus
+    read COUNT          Read COUNT bytes from bus
+    read FMT            Read from bus and parse as python struct format string FMT
+    -I                  Enter interactive console
 
     Example:
-    {sys.argv[0]} /dev/ttyUSB0 -v -R -w 33 -r 8
+    {sys.argv[0]} /dev/ttyUSB0 -v reset write 33 read 8
     """
 
     def errout(*args, **kwargs):
@@ -94,11 +95,11 @@ if __name__ == '__main__':
         errout(USAGE)
         exit(-1)
 
-    _, dev, *args = sys.argv
+    _prog, dev, *args = sys.argv
 
-    ow = OneWire(dev)
+    bus = OneWire(dev)
 
-    commands = '-b', '-v', '-r', '-w', '-R'
+    commands = '-b', '-v', 'read', 'write', 'reset', '-I'
 
     verbose = False
     binary = False
@@ -107,20 +108,24 @@ if __name__ == '__main__':
         cmd = args.pop(0)
         if cmd == '-v':
             verbose = not verbose
+
         elif cmd == '-b':
             binary = not binary
-        elif cmd == '-R':
+
+        elif cmd == 'reset':
             if verbose:
                 errout('reset')
-            ow.reset()
-        elif cmd == '-w':
+            bus.reset()
+
+        elif cmd == 'write':
             data = b''
             while args and args[0] not in commands:
                 data += bytes.fromhex(args.pop(0))
-            ow.write(data)
+            bus.write(data)
             if verbose:
                 errout('write:', data.hex(' '))
-        elif cmd == '-r':
+
+        elif cmd == 'read':
             fmt_or_count = args.pop(0)
             fmt = None
             try:
@@ -128,15 +133,29 @@ if __name__ == '__main__':
             except ValueError:
                 fmt = fmt_or_count
                 count = struct.calcsize(fmt_or_count)
-            data = ow.read(count)
+            data = bus.read(count)
             if verbose:
                 errout(' read:', data.hex(' '))
             if binary:
                 sys.stdout.buffer.write(data)
             else:
                 if fmt:
-                    print(*struct.unpack(fmt, data))
+                    unpacked = struct.unpack(fmt, data)
+                    print(*unpacked)
                 else:
                     print(data.hex(' '))
+
+        elif cmd == '-I':
+            for _name in ('bus', 'data', 'unpacked'):
+                print(f'{_name:10}=', repr(locals().get(_name)))
+            import code
+            import readline
+            import rlcompleter
+            vars = globals()
+            vars.update(locals())
+            readline.set_completer(rlcompleter.Completer(vars).complete)
+            readline.parse_and_bind("tab: complete")
+            code.interact(banner='', local=locals())
+
         else:
             raise Exception(f'Invalid command: {cmd}')
